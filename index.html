@@ -1,1 +1,1124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Laiterie &amp; Brasserie</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --milk: #e8f4f0;
+    --milk-mid: #2d8c6f;
+    --milk-dark: #1a5c48;
+    --beer: #fdf0d5;
+    --beer-mid: #c07a1a;
+    --beer-dark: #7a4c06;
+    --neutral: #1c1c1e;
+    --neutral-soft: #3a3a3c;
+    --surface: #f5f5f0;
+    --surface2: #ebebе6;
+    --white: #ffffff;
+    --correct: #1d9e75;
+    --wrong: #d85a30;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--neutral);
+    min-height: 100vh;
+  }
 
+  /* HEADER */
+  header {
+    background: var(--neutral);
+    color: var(--white);
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 40px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-tag {
+    display: inline-block;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 3px 10px;
+    margin-bottom: 0.75rem;
+    color: rgba(255,255,255,0.7);
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+    max-width: 480px;
+  }
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .score-pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.83rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+  }
+  #global-score { color: #fde68a; }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--neutral);
+    padding: 0 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-btn.active { color: var(--white); border-bottom-color: var(--white); }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+
+  /* MAIN */
+  main { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SECTION TITLE */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
+  .section-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+  .badge-milk { background: var(--milk); color: var(--milk-dark); }
+  .badge-beer { background: var(--beer); color: var(--beer-dark); }
+  .badge-both { background: #f0eafa; color: #3c2870; }
+  .section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 1.5px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .card.correct { border-color: var(--correct); }
+  .card.wrong { border-color: var(--wrong); }
+  .card.locked { pointer-events: none; }
+
+  .question-label {
+    font-size: 0.72rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.4rem;
+  }
+  .question-text {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 1.1rem;
+  }
+
+  /* QCM */
+  .options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .opt:hover { background: #f8f8f4; border-color: #ccc; }
+  .opt .opt-letter {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: #f0f0ec;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .opt.selected { border-color: var(--neutral); }
+  .opt.selected .opt-letter { background: var(--neutral); color: white; }
+  .opt.correct-ans { border-color: var(--correct); background: #e8f4f0; }
+  .opt.correct-ans .opt-letter { background: var(--correct); color: white; }
+  .opt.wrong-ans { border-color: var(--wrong); background: #fdf0ec; }
+  .opt.wrong-ans .opt-letter { background: var(--wrong); color: white; }
+
+  /* FEEDBACK */
+  .feedback {
+    display: none;
+    margin-top: 0.85rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #e8f4f0; color: var(--milk-dark); }
+  .feedback.nok { background: #fdf0ec; color: #993c1d; }
+
+  /* CHECK BUTTON */
+  .btn-check {
+    margin-top: 1rem;
+    padding: 0.55rem 1.4rem;
+    background: var(--neutral);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-check:hover { opacity: 0.82; }
+  .btn-check:disabled { opacity: 0.35; cursor: default; }
+
+  /* TEXTE À TROUS */
+  .blank-text {
+    font-size: 0.97rem;
+    line-height: 2.1;
+  }
+  .blank {
+    display: inline-block;
+    border-bottom: 2px solid var(--neutral);
+    min-width: 120px;
+    padding: 0 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--neutral);
+    outline: none;
+    background: transparent;
+    transition: border-color 0.2s;
+    vertical-align: bottom;
+  }
+  .blank:focus { border-color: var(--milk-mid); }
+  .blank.correct-blank { border-color: var(--correct); color: var(--correct); }
+  .blank.wrong-blank { border-color: var(--wrong); color: var(--wrong); }
+
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .word-chip {
+    padding: 4px 12px;
+    background: #f0f0ec;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .word-chip:hover { background: #e5e5e0; }
+  .word-chip.used { opacity: 0.3; pointer-events: none; text-decoration: line-through; }
+
+  /* DRAG & DROP */
+  .drop-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 60px;
+  }
+  .drop-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    min-height: 50px;
+    background: #fafaf8;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .drop-slot.over { border-color: var(--milk-mid); background: #f0faf6; }
+  .drop-slot.filled { border-style: solid; border-color: #ccc; }
+  .drop-slot.correct-slot { border-color: var(--correct); background: #e8f4f0; }
+  .drop-slot.wrong-slot { border-color: var(--wrong); background: #fdf0ec; }
+  .slot-num {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: #ebebе6;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+    color: #666;
+  }
+  .slot-label { font-size: 0.88rem; color: #aaa; font-style: italic; }
+  .slot-content {
+    font-size: 0.88rem;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .drag-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f8f4;
+    border-radius: 8px;
+    min-height: 60px;
+  }
+  .drag-item {
+    padding: 6px 14px;
+    background: var(--white);
+    border: 1.5px solid #ddd;
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: grab;
+    transition: box-shadow 0.15s, opacity 0.15s;
+    user-select: none;
+  }
+  .drag-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .drag-item.dragging { opacity: 0.4; }
+  .drag-item.placed { display: none; }
+
+  /* MATCH (relier) */
+  .match-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 2rem;
+    position: relative;
+  }
+  .match-left, .match-right { display: flex; flex-direction: column; gap: 0.5rem; }
+  .match-item {
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    border: 1.5px solid #e5e5e0;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.4;
+  }
+  .match-item.selected-left { border-color: var(--milk-mid); background: var(--milk); }
+  .match-item.matched { border-color: var(--correct); background: #e8f4f0; pointer-events: none; }
+  .match-item.wrong-match { border-color: var(--wrong); background: #fdf0ec; }
+  .match-right .match-item { cursor: pointer; }
+  .match-right .match-item.selected-right { border-color: var(--beer-mid); background: var(--beer); }
+
+  /* SECTION SCORE */
+  .section-score {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-top: 1.5rem;
+  }
+  .section-score .big-score {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .section-score p { font-size: 0.88rem; color: #666; }
+
+  /* PROGRESS */
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    font-size: 0.78rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .progress-bar-wrap {
+    background: #ebebeb;
+    border-radius: 999px;
+    height: 5px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--neutral);
+    transition: width 0.4s ease;
+  }
+
+  /* RESET */
+  .btn-reset {
+    background: none;
+    border: 1.5px solid #ddd;
+    border-radius: 7px;
+    padding: 0.45rem 1.1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--neutral); color: var(--neutral); }
+
+  @media (max-width: 540px) {
+    .match-container { grid-template-columns: 1fr; }
+    header { padding: 1.5rem 1rem 1rem; }
+    main { padding: 1.25rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">4e secondaire · Sciences</div>
+  <h1>Laiterie &amp; Brasserie<br>— Quiz interactif</h1>
+  <p>Testez vos connaissances sur les chaînes de production industrielle visitées.</p>
+  <div class="score-bar">
+    <span class="score-pill">Score global : <span id="global-score">0 / 0</span></span>
+    <span class="score-pill" id="score-section-display">Section : —</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showSection('s1',this)">1 · Remettre en ordre</button>
+  <button class="tab-btn" onclick="showSection('s2',this)">2 · QCM</button>
+  <button class="tab-btn" onclick="showSection('s3',this)">3 · Textes à trous</button>
+  <button class="tab-btn" onclick="showSection('s4',this)">4 · Associations</button>
+</nav>
+
+<main>
+
+<!-- ==================== SECTION 1 : DRAG & DROP ==================== -->
+<section id="s1" class="section active">
+  <div class="section-header">
+    <span class="section-badge badge-both">Les deux filières</span>
+    <h2>Remets les étapes dans le bon ordre</h2>
+  </div>
+
+  <!-- DRAG 1 : Laiterie -->
+  <div class="card" id="drag1-card">
+    <div class="question-label">Question 1 · Laiterie</div>
+    <div class="question-text">Remets les 6 grandes étapes de la production laitière dans l'ordre chronologique en glissant les cartes.</div>
+    <div class="drag-pool" id="pool1"></div>
+    <div class="drop-zone" id="zone1"></div>
+    <button class="btn-check" onclick="checkDrag('drag1')">Vérifier</button>
+    <div class="feedback" id="fb-drag1"></div>
+  </div>
+
+  <!-- DRAG 2 : Brasserie -->
+  <div class="card" id="drag2-card">
+    <div class="question-label">Question 2 · Brasserie</div>
+    <div class="question-text">Remets les 7 grandes étapes de la production brassicole dans l'ordre chronologique.</div>
+    <div class="drag-pool" id="pool2"></div>
+    <div class="drop-zone" id="zone2"></div>
+    <button class="btn-check" onclick="checkDrag('drag2')">Vérifier</button>
+    <div class="feedback" id="fb-drag2"></div>
+  </div>
+
+  <div class="section-score">
+    <div class="big-score" id="score-s1">— / 2</div>
+    <p>Réinitialiser les exercices de cette section</p>
+    <button class="btn-reset" style="margin-top:0.75rem" onclick="resetSection1()">Recommencer</button>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2 : QCM ==================== -->
+<section id="s2" class="section">
+  <div class="section-header">
+    <span class="section-badge badge-milk">Laiterie &amp; Brasserie</span>
+    <h2>Questions à choix multiples</h2>
+  </div>
+  <div id="qcm-container"></div>
+  <div class="section-score">
+    <div class="big-score" id="score-s2">— / 8</div>
+    <p>Questions correctement répondues</p>
+    <button class="btn-reset" style="margin-top:0.75rem" onclick="resetQCM()">Recommencer</button>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3 : TEXTES À TROUS ==================== -->
+<section id="s3" class="section">
+  <div class="section-header">
+    <span class="section-badge badge-beer">Vocabulaire technique</span>
+    <h2>Complète les descriptions</h2>
+  </div>
+  <div id="blanks-container"></div>
+  <div class="section-score">
+    <div class="big-score" id="score-s3">— / 8</div>
+    <p>Mots correctement placés</p>
+    <button class="btn-reset" style="margin-top:0.75rem" onclick="resetBlanks()">Recommencer</button>
+  </div>
+</section>
+
+<!-- ==================== SECTION 4 : ASSOCIATIONS ==================== -->
+<section id="s4" class="section">
+  <div class="section-header">
+    <span class="section-badge badge-both">Les deux filières</span>
+    <h2>Relie chaque équipement à sa fonction</h2>
+  </div>
+  <div id="match-container-wrap"></div>
+  <div class="section-score">
+    <div class="big-score" id="score-s4">— / 8</div>
+    <p>Associations correctes</p>
+    <button class="btn-reset" style="margin-top:0.75rem" onclick="resetMatch()">Recommencer</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+
+// DRAG & DROP
+const dragData = {
+  drag1: {
+    correct: [
+      'Collecte du lait cru (fermes)',
+      'Réception &amp; contrôle qualité',
+      'Centrifugation &amp; écrémage',
+      'Pasteurisation &amp; homogénéisation',
+      'Conditionnement (Tetra Pak, pots…)',
+      'Contrôle final &amp; expédition'
+    ]
+  },
+  drag2: {
+    correct: [
+      'Réception des matières premières',
+      'Concassage du malt',
+      'Empâtage &amp; filtration du moût',
+      'Ébullition &amp; houblonnage',
+      'Fermentation &amp; garde',
+      'Filtration &amp; carbonatation',
+      'Conditionnement &amp; expédition'
+    ]
+  }
+};
+
+// QCM
+const qcmData = [
+  {
+    q: 'À quelle température est pasteurisé le lait lors de la pasteurisation HTST (courte durée) ?',
+    opts: ['52°C pendant 30 minutes','72°C pendant 15 secondes','90°C pendant 2 secondes','100°C pendant 1 minute'],
+    ans: 1,
+    fb: 'La pasteurisation HTST (High Temperature Short Time) porte le lait à 72°C pendant 15 secondes — suffisant pour éliminer les pathogènes sans dénaturer les protéines.',
+    badge: 'badge-milk'
+  },
+  {
+    q: 'Quel équipement sépare la crème du lait écrémé dans une laiterie industrielle ?',
+    opts: ['L\'homogénéisateur','L\'échangeur à plaques','La centrifugeuse-écrémeuse','Le filtre à membrane'],
+    ans: 2,
+    fb: 'La centrifugeuse-écrémeuse utilise la force centrifuge pour séparer les globules gras (crème) du lait écrémé.',
+    badge: 'badge-milk'
+  },
+  {
+    q: 'Quel est le rôle de l\'homogénéisateur dans la production laitière ?',
+    opts: ['Tuer les bactéries pathogènes','Briser les globules gras pour éviter la séparation de la crème','Filtrer les impuretés du lait cru','Refroidir le lait après pasteurisation'],
+    ans: 1,
+    fb: 'L\'homogénéisateur soumet le lait à une très haute pression (150–200 bar) qui éclate les globules gras, empêchant la crème de remonter en surface.',
+    badge: 'badge-milk'
+  },
+  {
+    q: 'Que sont les « drêches » dans le processus de brassage ?',
+    opts: ['Les résidus de houblon après ébullition','Les enveloppes de malt épuisées après filtration du moût','Les levures mortes après fermentation','Les impuretés retirées lors du whirlpool'],
+    ans: 1,
+    fb: 'Les drêches sont les résidus solides (enveloppes de malt) qui restent dans la cuve lauter tun après la filtration du moût. Elles sont souvent valorisées comme alimentation animale.',
+    badge: 'badge-beer'
+  },
+  {
+    q: 'Pourquoi porte-t-on le moût à ébullition en brasserie ?',
+    opts: ['Uniquement pour ajouter le houblon','Pour stériliser, concentrer le moût, isomériser les acides du houblon et précipiter les protéines','Pour activer les levures de fermentation','Pour séparer la crème du moût'],
+    ans: 1,
+    fb: 'L\'ébullition cumule plusieurs fonctions : stérilisation, concentration, isomérisation des acides alpha du houblon (amertume), précipitation des protéines et évaporation des arômes indésirables.',
+    badge: 'badge-beer'
+  },
+  {
+    q: 'Quelle est la différence principale entre UHT et pasteurisation HTST ?',
+    opts: ['L\'UHT utilise des rayons UV, la pasteurisation utilise la chaleur','L\'UHT (135–140°C / 2–4 s) produit du lait de longue conservation, la pasteurisation (72°C / 15 s) donne du lait frais','L\'UHT est moins efficace contre les bactéries','La pasteurisation est réservée aux produits bio'],
+    ans: 1,
+    fb: 'L\'UHT (Ultra Haute Température) détruit tous les micro-organismes, permettant une conservation à température ambiante pendant plusieurs mois. La pasteurisation n\'élimine que les pathogènes, le lait doit rester réfrigéré et se conserve environ 10 jours.',
+    badge: 'badge-milk'
+  },
+  {
+    q: 'Qu\'est-ce que la « garde » en brasserie ?',
+    opts: ['L\'étape d\'ajout du houblon aromatique','La maturation à basse température (0–2°C) après fermentation principale','Le contrôle qualité avant embouteillage','La période de stockage en camion frigorifique'],
+    ans: 1,
+    fb: 'La garde (ou lagering) est une maturation à très basse température (0–2°C) qui dure 2 à 6 semaines. Elle permet la clarification naturelle, l\'élimination des mauvais arômes et l\'équilibre de la bière.',
+    badge: 'badge-beer'
+  },
+  {
+    q: 'Quelle étape est commune aux deux processus (laiterie et brasserie) ?',
+    opts: ['La fermentation alcoolique','L\'empâtage','Le contrôle qualité en laboratoire à la réception','Le barattage'],
+    ans: 2,
+    fb: 'Les deux industries effectuent un contrôle qualité rigoureux à la réception des matières premières (analyses microbiologiques, physico-chimiques, température, traçabilité). C\'est une étape fondamentale commune aux deux filières.',
+    badge: 'badge-both'
+  }
+];
+
+// TEXTES À TROUS
+const blanksData = [
+  {
+    label: 'Laiterie',
+    badge: 'badge-milk',
+    title: 'La chaîne du lait',
+    text: 'Après la traite, le lait est conservé dans un tank à [BLANK_0] avant d\'être transporté par camion-citerne. À la laiterie, il est centrifugé pour séparer la [BLANK_1] du lait écrémé. Il est ensuite pasteurisé à [BLANK_2] pendant 15 secondes, puis homogénéisé sous haute pression pour stabiliser les [BLANK_3].',
+    blanks: ['4°C', 'crème', '72°C', 'globules gras'],
+    bank: ['4°C', 'crème', '72°C', 'globules gras', '100°C', 'protéines', 'lactosérum', 'ferments']
+  },
+  {
+    label: 'Brasserie',
+    badge: 'badge-beer',
+    title: 'Du grain à la bière',
+    text: 'Le malt est d\'abord concassé dans un [BLANK_0] à cylindres. Il est ensuite mélangé à l\'eau chaude dans la cuve d\'[BLANK_1] pour transformer l\'amidon en sucres fermentescibles. Le moût obtenu est filtré dans la cuve [BLANK_2], puis porté à ébullition pour y ajouter le [BLANK_3] qui apporte l\'amertume.',
+    blanks: ['moulin', 'empâtage', 'lauter tun', 'houblon'],
+    bank: ['moulin', 'empâtage', 'lauter tun', 'houblon', 'fermenteur', 'levure', 'whirlpool', 'brite tank']
+  }
+];
+
+// ASSOCIATIONS
+const matchData = [
+  {
+    label: 'Équipements &amp; fonctions',
+    badge: 'badge-both',
+    pairs: [
+      { left: 'Centrifugeuse-écrémeuse', right: 'Sépare la crème du lait écrémé' },
+      { left: 'Échangeur à plaques', right: 'Pasteurise ou refroidit rapidement un liquide' },
+      { left: 'Lauter tun', right: 'Filtre le moût en retenant les drêches' },
+      { left: 'Fermenteur cylindro-conique', right: 'Contient la fermentation alcoolique' },
+      { left: 'Homogénéisateur', right: 'Brise les globules gras sous haute pression' },
+      { left: 'Whirlpool', right: 'Élimine les résidus de houblon par centrifugation' },
+      { left: 'Brite tank', right: 'Stockage &amp; carbonatation avant conditionnement' },
+      { left: 'Tetra Pak (remplissage aseptique)', right: 'Conditionne le lait UHT en milieu stérile' }
+    ]
+  }
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let scores = { s1: [0, 2], s2: [0, 8], s3: [0, 8], s4: [0, 8] };
+let dragState = {};
+let qcmState = {};
+let blanksState = {};
+let matchState = { selectedLeft: null, matched: {} };
+
+// ============================================================
+//  TABS
+// ============================================================
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  updateScoreDisplay(id);
+}
+function updateScoreDisplay(sectionId) {
+  const s = scores[sectionId];
+  document.getElementById('score-section-display').textContent = 'Section : ' + s[0] + ' / ' + s[1];
+}
+function updateGlobal() {
+  let total = 0, max = 0;
+  Object.values(scores).forEach(s => { total += s[0]; max += s[1]; });
+  document.getElementById('global-score').textContent = total + ' / ' + max;
+}
+
+// ============================================================
+//  SECTION 1 : DRAG & DROP
+// ============================================================
+function initDrag(id) {
+  const data = dragData[id];
+  const shuffled = [...data.correct].sort(() => Math.random() - 0.5);
+  dragState[id] = { slots: Array(data.correct.length).fill(null), items: shuffled };
+
+  const pool = document.getElementById('pool' + id.slice(-1));
+  const zone = document.getElementById('zone' + id.slice(-1));
+  pool.innerHTML = '';
+  zone.innerHTML = '';
+
+  shuffled.forEach((label, i) => {
+    const el = document.createElement('div');
+    el.className = 'drag-item';
+    el.draggable = true;
+    el.innerHTML = label;
+    el.dataset.id = i;
+    el.dataset.dragId = id;
+    el.addEventListener('dragstart', onDragStart);
+    pool.appendChild(el);
+  });
+
+  data.correct.forEach((_, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'drop-slot';
+    slot.dataset.slot = i;
+    slot.dataset.dragId = id;
+    slot.innerHTML = `<div class="slot-num">${i+1}</div><div class="slot-label">Glisse ici…</div>`;
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+    slot.addEventListener('drop', onDrop);
+    zone.appendChild(slot);
+  });
+}
+
+let dragging = { el: null, id: null, itemIdx: null, dragId: null };
+
+function onDragStart(e) {
+  dragging.el = e.target;
+  dragging.itemIdx = parseInt(e.target.dataset.id);
+  dragging.dragId = e.target.dataset.dragId;
+  setTimeout(() => e.target.classList.add('dragging'), 0);
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  const slot = e.currentTarget;
+  slot.classList.remove('over');
+  if (!dragging.el) return;
+
+  const slotIdx = parseInt(slot.dataset.slot);
+  const did = slot.dataset.dragId;
+  if (did !== dragging.dragId) return;
+
+  const state = dragState[did];
+  // If slot already has something, return item to pool
+  if (state.slots[slotIdx] !== null) {
+    const prevIdx = state.slots[slotIdx];
+    const prevEl = document.querySelector(`#pool${did.slice(-1)} [data-id="${prevIdx}"]`);
+    if (prevEl) { prevEl.classList.remove('placed'); }
+  }
+
+  state.slots[slotIdx] = dragging.itemIdx;
+  dragging.el.classList.remove('dragging');
+  dragging.el.classList.add('placed');
+
+  const content = slot.querySelector('.slot-label, .slot-content');
+  slot.classList.add('filled');
+  if (content) {
+    content.className = 'slot-content';
+    content.innerHTML = dragging.el.innerHTML;
+  }
+  dragging.el = null;
+}
+
+function checkDrag(id) {
+  const data = dragData[id];
+  const state = dragState[id];
+  const num = id.slice(-1);
+  const zone = document.getElementById('zone' + num);
+  const fb = document.getElementById('fb-' + id);
+  const card = document.getElementById(id + '-card');
+
+  let correct = 0;
+  const slots = zone.querySelectorAll('.drop-slot');
+  slots.forEach((slot, i) => {
+    const placedIdx = state.slots[i];
+    if (placedIdx === null) return;
+    const placedLabel = state.items[placedIdx];
+    const correctLabel = data.correct[i];
+    if (placedLabel === correctLabel) {
+      slot.classList.add('correct-slot');
+      correct++;
+    } else {
+      slot.classList.add('wrong-slot');
+    }
+  });
+
+  const total = data.correct.length;
+  const passed = correct === total;
+  fb.className = 'feedback show ' + (passed ? 'ok' : 'nok');
+  fb.innerHTML = passed
+    ? '✓ Parfait ! Toutes les étapes sont dans le bon ordre.'
+    : `${correct} / ${total} bonnes positions. L'ordre correct est : <ol style="margin:0.5rem 0 0 1.2rem">` + data.correct.map(s => `<li>${s}</li>`).join('') + '</ol>';
+
+  card.classList.add(passed ? 'correct' : 'wrong');
+  card.classList.add('locked');
+  card.querySelector('.btn-check').disabled = true;
+
+  const prevScore = scores.s1[0];
+  scores.s1[0] = Math.max(prevScore, Object.keys(dragState).filter(k => {
+    const d = dragData[k];
+    const s = dragState[k];
+    return d.correct.every((c, i) => s.items[s.slots[i]] === c);
+  }).length);
+  document.getElementById('score-s1').textContent = scores.s1[0] + ' / ' + scores.s1[1];
+  updateGlobal();
+  updateScoreDisplay('s1');
+}
+
+function resetSection1() {
+  scores.s1[0] = 0;
+  document.getElementById('score-s1').textContent = '— / 2';
+  dragState = {};
+  ['drag1', 'drag2'].forEach(id => {
+    const card = document.getElementById(id + '-card');
+    card.classList.remove('correct', 'wrong', 'locked');
+    card.querySelector('.btn-check').disabled = false;
+    document.getElementById('fb-' + id).className = 'feedback';
+    initDrag(id);
+  });
+  updateGlobal(); updateScoreDisplay('s1');
+}
+
+// ============================================================
+//  SECTION 2 : QCM
+// ============================================================
+function initQCM() {
+  const container = document.getElementById('qcm-container');
+  container.innerHTML = '';
+  qcmData.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'qcm-card-' + qi;
+    const letters = 'ABCD';
+    card.innerHTML = `
+      <div class="question-label"><span class="section-badge ${q.badge}" style="font-size:10px;padding:2px 8px">Question ${qi+1}</span></div>
+      <div class="question-text" style="margin-top:0.6rem">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o, oi) => `
+          <div class="opt" data-qi="${qi}" data-oi="${oi}" onclick="selectOpt(${qi},${oi})">
+            <div class="opt-letter">${letters[oi]}</div>
+            <div>${o}</div>
+          </div>`).join('')}
+      </div>
+      <button class="btn-check" onclick="checkQCM(${qi})" disabled>Vérifier</button>
+      <div class="feedback" id="fb-qcm-${qi}"></div>
+    `;
+    container.appendChild(card);
+  });
+  qcmState = {};
+}
+
+function selectOpt(qi, oi) {
+  if (qcmState[qi] && qcmState[qi].locked) return;
+  if (!qcmState[qi]) qcmState[qi] = { selected: null, locked: false };
+  qcmState[qi].selected = oi;
+  document.querySelectorAll(`[data-qi="${qi}"]`).forEach(el => el.classList.remove('selected'));
+  document.querySelector(`[data-qi="${qi}"][data-oi="${oi}"]`).classList.add('selected');
+  document.querySelector(`#qcm-card-${qi} .btn-check`).disabled = false;
+}
+
+function checkQCM(qi) {
+  const q = qcmData[qi];
+  const state = qcmState[qi];
+  if (!state || state.selected === null) return;
+  state.locked = true;
+  const card = document.getElementById('qcm-card-' + qi);
+  const fb = document.getElementById('fb-qcm-' + qi);
+  const correct = state.selected === q.ans;
+
+  document.querySelectorAll(`[data-qi="${qi}"]`).forEach(el => {
+    el.classList.remove('selected');
+    if (parseInt(el.dataset.oi) === q.ans) el.classList.add('correct-ans');
+    else if (parseInt(el.dataset.oi) === state.selected) el.classList.add('wrong-ans');
+  });
+  fb.className = 'feedback show ' + (correct ? 'ok' : 'nok');
+  fb.textContent = (correct ? '✓ Correct ! ' : '✗ Incorrect. ') + q.fb;
+  card.classList.add(correct ? 'correct' : 'wrong', 'locked');
+  card.querySelector('.btn-check').disabled = true;
+
+  scores.s2[0] = Object.entries(qcmState).filter(([i, s]) => s.locked && s.selected === qcmData[i].ans).length;
+  document.getElementById('score-s2').textContent = scores.s2[0] + ' / ' + scores.s2[1];
+  updateGlobal(); updateScoreDisplay('s2');
+}
+
+function resetQCM() {
+  scores.s2[0] = 0;
+  document.getElementById('score-s2').textContent = '— / 8';
+  initQCM(); updateGlobal(); updateScoreDisplay('s2');
+}
+
+// ============================================================
+//  SECTION 3 : TEXTES À TROUS (clic sur mot)
+// ============================================================
+function initBlanks() {
+  const container = document.getElementById('blanks-container');
+  container.innerHTML = '';
+  blanksState = {};
+
+  blanksData.forEach((item, bi) => {
+    blanksState[bi] = { filled: Array(item.blanks.length).fill(null), locked: false };
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'blank-card-' + bi;
+
+    // Build word bank (shuffled)
+    const shuffled = [...item.bank].sort(() => Math.random() - 0.5);
+
+    // Build text with blanks
+    let htmlText = item.text;
+    item.blanks.forEach((_, i) => {
+      htmlText = htmlText.replace(`[BLANK_${i}]`,
+        `<span class="blank" id="blank-${bi}-${i}" data-bi="${bi}" data-idx="${i}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`);
+    });
+
+    card.innerHTML = `
+      <div class="question-label"><span class="section-badge ${item.badge}" style="font-size:10px;padding:2px 8px">${item.label}</span></div>
+      <div class="question-text" style="margin-top:0.5rem">${item.title}</div>
+      <div class="word-bank" id="bank-${bi}">
+        ${shuffled.map(w => `<div class="word-chip" data-bi="${bi}" data-word="${w}" onclick="placeWord(${bi},'${w}',this)">${w}</div>`).join('')}
+      </div>
+      <p class="blank-text" style="margin-bottom:0.75rem" id="text-${bi}">${htmlText}</p>
+      <button class="btn-check" onclick="checkBlanks(${bi})">Vérifier</button>
+      <div class="feedback" id="fb-blank-${bi}"></div>
+    `;
+    container.appendChild(card);
+
+    // Click on blank to deselect
+    setTimeout(() => {
+      item.blanks.forEach((_, i) => {
+        document.getElementById(`blank-${bi}-${i}`).addEventListener('click', function() {
+          if (blanksState[bi].locked) return;
+          const w = blanksState[bi].filled[i];
+          if (!w) return;
+          blanksState[bi].filled[i] = null;
+          this.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+          // Re-enable chip
+          const chip = document.querySelector(`#bank-${bi} [data-word="${w}"]`);
+          if (chip) chip.classList.remove('used');
+        });
+      });
+    }, 0);
+  });
+}
+
+// Track active blank selection
+let activeBlank = { bi: null, idx: null };
+
+function placeWord(bi, word, chipEl) {
+  if (blanksState[bi].locked) return;
+  // Find first empty blank
+  const blanks = blanksState[bi].filled;
+  const emptyIdx = blanks.indexOf(null);
+  if (emptyIdx === -1) return;
+
+  blanksState[bi].filled[emptyIdx] = word;
+  const blankEl = document.getElementById(`blank-${bi}-${emptyIdx}`);
+  blankEl.textContent = word;
+  chipEl.classList.add('used');
+}
+
+function checkBlanks(bi) {
+  const item = blanksData[bi];
+  const state = blanksState[bi];
+  state.locked = true;
+  let correct = 0;
+  item.blanks.forEach((expected, i) => {
+    const blankEl = document.getElementById(`blank-${bi}-${i}`);
+    const filled = state.filled[i];
+    if (filled && filled.toLowerCase() === expected.toLowerCase()) {
+      blankEl.classList.add('correct-blank');
+      correct++;
+    } else {
+      blankEl.classList.add('wrong-blank');
+      blankEl.textContent = (filled || '?') + ' → ' + expected;
+    }
+  });
+  const fb = document.getElementById('fb-blank-' + bi);
+  const passed = correct === item.blanks.length;
+  fb.className = 'feedback show ' + (passed ? 'ok' : 'nok');
+  fb.textContent = passed ? '✓ Tous les mots sont correctement placés !' : `${correct} / ${item.blanks.length} mots corrects.`;
+  const card = document.getElementById('blank-card-' + bi);
+  card.classList.add(passed ? 'correct' : 'wrong', 'locked');
+  card.querySelector('.btn-check').disabled = true;
+
+  scores.s3[0] = blanksData.reduce((acc, item, idx) => {
+    const s = blanksState[idx];
+    if (!s || !s.locked) return acc;
+    return acc + item.blanks.filter((e, i) => s.filled[i] && s.filled[i].toLowerCase() === e.toLowerCase()).length;
+  }, 0);
+  document.getElementById('score-s3').textContent = scores.s3[0] + ' / ' + scores.s3[1];
+  updateGlobal(); updateScoreDisplay('s3');
+}
+
+function resetBlanks() {
+  scores.s3[0] = 0;
+  document.getElementById('score-s3').textContent = '— / 8';
+  initBlanks(); updateGlobal(); updateScoreDisplay('s3');
+}
+
+// ============================================================
+//  SECTION 4 : ASSOCIATIONS
+// ============================================================
+function initMatch() {
+  const wrap = document.getElementById('match-container-wrap');
+  wrap.innerHTML = '';
+  matchState = { selectedLeft: null, matched: {} };
+
+  matchData.forEach((item, mi) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'match-card-' + mi;
+
+    const shuffledRight = [...item.pairs].sort(() => Math.random() - 0.5);
+    const shuffledLeft = [...item.pairs].sort(() => Math.random() - 0.5);
+
+    card.innerHTML = `
+      <div class="question-label"><span class="section-badge ${item.badge}" style="font-size:10px;padding:2px 8px">${item.label}</span></div>
+      <p style="font-size:0.88rem;color:#666;margin:0.5rem 0 1rem">Clique sur un élément à gauche, puis sur sa correspondance à droite.</p>
+      <div class="match-container">
+        <div class="match-left" id="match-left-${mi}">
+          ${shuffledLeft.map((p, i) => `<div class="match-item" id="ml-${mi}-${i}" data-mi="${mi}" data-lidx="${i}" data-key="${p.left}" onclick="selectLeft(${mi},${i},'${p.left.replace(/'/g,'&#39;').replace(/&amp;/g,'AMP')}')">${p.left}</div>`).join('')}
+        </div>
+        <div class="match-right" id="match-right-${mi}">
+          ${shuffledRight.map((p, i) => `<div class="match-item" id="mr-${mi}-${i}" data-mi="${mi}" data-ridx="${i}" data-key="${p.right}" onclick="selectRight(${mi},${i},'${p.right.replace(/'/g,'&#39;').replace(/&amp;/g,'AMP')}')">${p.right}</div>`).join('')}
+        </div>
+      </div>
+      <div class="feedback" id="fb-match-${mi}"></div>
+    `;
+    wrap.appendChild(card);
+  });
+
+  // Store pair lookup
+  matchState.pairs = matchData[0].pairs;
+}
+
+function selectLeft(mi, lidx, key) {
+  if (matchState.matched['L'+mi+'_'+lidx]) return;
+  document.querySelectorAll(`[id^="ml-${mi}-"]`).forEach(el => {
+    if (!matchState.matched['L'+mi+'_'+parseInt(el.dataset.lidx)]) el.classList.remove('selected-left');
+  });
+  matchState.selectedLeft = { mi, lidx, key };
+  document.getElementById(`ml-${mi}-${lidx}`).classList.add('selected-left');
+}
+
+function selectRight(mi, ridx, key) {
+  if (!matchState.selectedLeft || matchState.selectedLeft.mi !== mi) return;
+  if (matchState.matched['R'+mi+'_'+ridx]) return;
+
+  const leftKey = matchState.selectedLeft.key.replace(/AMP/g,'&amp;');
+  const rightKey = key.replace(/AMP/g,'&amp;');
+  const lEl = document.getElementById(`ml-${mi}-${matchState.selectedLeft.lidx}`);
+  const rEl = document.getElementById(`mr-${mi}-${ridx}`);
+
+  // Find correct pair
+  const correctPair = matchState.pairs.find(p => p.left === leftKey);
+  const isCorrect = correctPair && correctPair.right === rightKey;
+
+  if (isCorrect) {
+    lEl.classList.remove('selected-left');
+    lEl.classList.add('matched');
+    rEl.classList.add('matched');
+    matchState.matched['L'+mi+'_'+matchState.selectedLeft.lidx] = true;
+    matchState.matched['R'+mi+'_'+ridx] = true;
+
+    scores.s4[0] = Object.keys(matchState.matched).filter(k => k.startsWith('L')).length;
+    document.getElementById('score-s4').textContent = scores.s4[0] + ' / ' + scores.s4[1];
+    updateGlobal(); updateScoreDisplay('s4');
+
+    if (scores.s4[0] === matchData[0].pairs.length) {
+      document.getElementById('fb-match-' + mi).className = 'feedback show ok';
+      document.getElementById('fb-match-' + mi).textContent = '✓ Toutes les associations sont correctes. Excellent !';
+    }
+  } else {
+    lEl.classList.add('wrong-match');
+    rEl.classList.add('wrong-match');
+    setTimeout(() => {
+      lEl.classList.remove('wrong-match','selected-left');
+      rEl.classList.remove('wrong-match');
+    }, 900);
+  }
+  matchState.selectedLeft = null;
+}
+
+function resetMatch() {
+  scores.s4[0] = 0;
+  document.getElementById('score-s4').textContent = '— / 8';
+  initMatch(); updateGlobal(); updateScoreDisplay('s4');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+initDrag('drag1');
+initDrag('drag2');
+initQCM();
+initBlanks();
+initMatch();
+updateGlobal();
+updateScoreDisplay('s1');
+</script>
+</body>
+</html>
