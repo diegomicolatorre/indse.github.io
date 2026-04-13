@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur pH — Acides & Bases</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --text: #1a1916;
+  --text2: #6b6860;
+  --text3: #9e9c96;
+  --blue: #1a56db;
+  --blue-bg: #eff6ff;
+  --blue-border: #bfdbfe;
+  --green: #166534;
+  --green-bg: #f0fdf4;
+  --green-border: #bbf7d0;
+  --red: #991b1b;
+  --red-bg: #fef2f2;
+  --red-border: #fecaca;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.header {
+  background: var(--text);
+  color: #fff;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+
+.header h1 { font-size: 18px; font-weight: 600; }
+.header p  { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+.container { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.tabs {
+  display: flex; gap: 4px;
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  flex: 1; padding: 9px; font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  border: none; background: transparent; cursor: pointer;
+  border-radius: 7px; color: var(--text2); transition: all 0.15s;
+}
+
+.tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 1rem;
+}
+
+label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 5px; }
+
+select, input[type=number] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 1rem;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+select:focus, input:focus { border-color: var(--blue); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hidden { display: none !important; }
+
+.presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.preset-label { font-size: 12px; color: var(--text3); }
+
+.preset-btn {
+  padding: 5px 11px;
+  border: 0.5px solid var(--border2);
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--text3); }
+
+.btn-calc {
+  width: 100%; padding: 11px;
+  background: var(--text); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: opacity 0.15s;
+}
+
+.btn-calc:hover { opacity: 0.85; }
+
+/* pH Display */
+.ph-display {
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  transition: background 0.5s, color 0.5s;
+  margin-bottom: 1rem;
+}
+
+.ph-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 56px; font-weight: 500;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.ph-nature { font-size: 14px; margin-top: 8px; opacity: 0.75; font-weight: 500; }
+
+/* Scale */
+.scale-wrap { padding: 0 4px; margin-bottom: 1rem; }
+
+.scale-bar {
+  height: 22px;
+  border-radius: 11px;
+  background: linear-gradient(to right,
+    #b91c1c 0%, #dc2626 10%, #f97316 20%, #f59e0b 30%,
+    #eab308 40%, #84cc16 50%, #22c55e 57%,
+    #14b8a6 64%, #3b82f6 71%, #6366f1 80%,
+    #8b5cf6 90%, #7c3aed 100%);
+  position: relative; margin-bottom: 6px;
+}
+
+.scale-marker {
+  position: absolute; top: -5px;
+  width: 4px; height: 32px;
+  background: var(--text);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: left 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.scale-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text3);
+  font-family: 'DM Mono', monospace;
+}
+
+/* Steps */
+.formula-pill {
+  display: inline-block;
+  background: var(--blue-bg);
+  border: 0.5px solid var(--blue-border);
+  color: var(--blue);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px; font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 1rem;
+}
+
+.steps { display: flex; flex-direction: column; gap: 6px; }
+
+.step {
+  padding: 9px 14px;
+  border-left: 2px solid var(--border);
+  background: var(--surface2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13px; color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  line-height: 1.5;
+}
+
+.step.final {
+  border-left-color: var(--blue);
+  color: var(--text);
+  font-weight: 500;
+  background: var(--blue-bg);
+}
+
+/* ── QUIZ ── */
+.quiz-meta {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--text2);
+  margin-bottom: 10px;
+}
+
+.progress { display: flex; gap: 5px; margin-bottom: 1.5rem; }
+
+.dot {
+  height: 6px; border-radius: 3px;
+  flex: 1; background: var(--border);
+  transition: background 0.3s;
+}
+
+.dot.ok   { background: #22c55e; }
+.dot.ko   { background: #ef4444; }
+.dot.curr { background: var(--text); }
+
+.question { font-size: 15px; margin-bottom: 1.25rem; line-height: 1.5; }
+
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+
+.opt {
+  padding: 12px 14px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.opt:hover:not(:disabled) { background: var(--surface2); border-color: var(--text3); }
+.opt:disabled { cursor: default; }
+.opt.correct { background: var(--green-bg); border-color: var(--green-border); color: var(--green); font-weight: 500; }
+.opt.wrong   { background: var(--red-bg);   border-color: var(--red-border);   color: var(--red); }
+
+.feedback {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 13px; line-height: 1.6;
+  font-family: 'DM Mono', monospace;
+}
+
+.feedback.ok { background: var(--green-bg); color: #14532d; border: 0.5px solid var(--green-border); }
+.feedback.ko { background: var(--red-bg);   color: #7f1d1d; border: 0.5px solid var(--red-border); }
+
+.score-card {
+  text-align: center; padding: 3rem 2rem;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.score-num { font-size: 64px; font-weight: 600; font-family: 'DM Mono', monospace; line-height: 1; }
+.score-denom { font-size: 24px; color: var(--text2); }
+.score-msg { font-size: 15px; color: var(--text2); margin: 12px 0 2rem; }
+
+.btn-reset {
+  padding: 10px 24px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent; color: var(--text);
+  cursor: pointer; transition: all 0.15s;
+}
+
+.btn-reset:hover { background: var(--surface2); }
+
+.footer {
+  text-align: center;
+  font-size: 12px; color: var(--text3);
+  padding: 2rem 1.5rem;
+  border-top: 0.5px solid var(--border);
+  margin-top: 1rem;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">⚗</div>
+  <div>
+    <h1>Simulateur pH — Acides &amp; Bases</h1>
+    <p>Formules simplifiées (pKa) · INDSé Bastogne · 6e secondaire</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('sim')">Simulateur</button>
+    <button class="tab" onclick="showTab('exo')">Exercices</button>
+  </div>
+
+  <!-- ══════ SIMULATEUR ══════ -->
+  <div id="sim" class="section active">
+
+    <div class="card">
+      <div class="card-title">Paramètres de la solution</div>
+
+      <div class="row">
+        <div>
+          <label>Type de solution</label>
+          <select id="type" onchange="onTypeChange()">
+            <option value="af">Acide fort</option>
+            <option value="bf">Base forte</option>
+            <option value="afb">Acide faible</option>
+            <option value="bfb">Base faible</option>
+            <option value="tb">Solution tampon</option>
+          </select>
+        </div>
+        <div id="conc-wrap">
+          <label>Concentration C (mol/L)</label>
+          <input type="number" id="conc" value="0.1" min="1e-12" max="10" step="0.01" oninput="calculate()">
+        </div>
+      </div>
+
+      <div id="pka-row" class="hidden">
+        <label>pKa de l'acide</label>
+        <input type="number" id="pka" value="4.74" min="0" max="14" step="0.01" oninput="calculate()">
+      </div>
+
+      <div id="tampon-row" class="hidden">
+        <div class="row">
+          <div>
+            <label>n(A⁻) — base conjuguée (mol)</label>
+            <input type="number" id="na" value="0.05" min="0.001" step="0.001" oninput="calculate()">
+          </div>
+          <div>
+            <label>n(HA) — acide (mol)</label>
+            <input type="number" id="nha" value="0.05" min="0.001" step="0.001" oninput="calculate()">
+          </div>
+        </div>
+      </div>
+
+      <div class="presets" id="presets">
+        <span class="preset-label">Exemples :</span>
+      </div>
+
+      <button class="btn-calc" onclick="calculate()">Calculer le pH</button>
+    </div>
+
+    <div id="result-area" class="hidden">
+
+      <div class="ph-display" id="ph-bg">
+        <div class="ph-number" id="ph-val">—</div>
+        <div class="ph-nature" id="ph-nature">—</div>
+      </div>
+
+      <div class="scale-wrap">
+        <div class="scale-bar">
+          <div class="scale-marker" id="marker" style="left:50%"></div>
+        </div>
+        <div class="scale-labels">
+          <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+          <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+          <span>12</span><span>13</span><span>14</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Démarche de calcul</div>
+        <div class="formula-pill" id="formula-box"></div>
+        <div class="steps" id="steps"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ EXERCICES ══════ -->
+  <div id="exo" class="section">
+    <div id="quiz-area"></div>
+  </div>
+
+</div>
+
+<div class="footer">Outil pédagogique — Chimie acide-base · Formules simplifiées valables à 25 °C</div>
+
+<script>
+const PRESETS = {
+  af:  [{l:'HCl 0,1 M',      c:0.1,   pka:null, na:null, nha:null},
+        {l:'HNO₃ 0,02 M',    c:0.02,  pka:null, na:null, nha:null},
+        {l:'H₂SO₄ 0,05 M',   c:0.05,  pka:null, na:null, nha:null}],
+  bf:  [{l:'NaOH 0,01 M',    c:0.01,  pka:null, na:null, nha:null},
+        {l:'NaOH 0,1 M',     c:0.1,   pka:null, na:null, nha:null},
+        {l:'KOH 0,001 M',    c:0.001, pka:null, na:null, nha:null}],
+  afb: [{l:'CH₃COOH 0,1 M',  c:0.1,   pka:4.74, na:null, nha:null},
+        {l:'HNO₂ 0,1 M',     c:0.1,   pka:3.29, na:null, nha:null},
+        {l:'HCN 0,2 M',      c:0.2,   pka:9.21, na:null, nha:null}],
+  bfb: [{l:'NH₃ 0,1 M',      c:0.1,   pka:9.25, na:null, nha:null},
+        {l:'Aniline 0,05 M',  c:0.05,  pka:4.63, na:null, nha:null}],
+  tb:  [{l:'Acétate éq.',     c:null,  pka:4.74, na:0.05, nha:0.05},
+        {l:'Nitrite 0.25/0.20',c:null, pka:3.29, na:0.20, nha:0.25}],
+};
+
+// "Acide fort" → "Fortement acide" pour éviter confusion avec type d'acide
+const NATURES = [
+  {max:2,   t:'Extrêmement acide',  bg:'#fef2f2', txt:'#7f1d1d'},
+  {max:4,   t:'Fortement acide',    bg:'#fff7ed', txt:'#7c2d12'},
+  {max:6,   t:'Acide',              bg:'#fefce8', txt:'#713f12'},
+  {max:6.9, t:'Légèrement acide',   bg:'#f0fdf4', txt:'#14532d'},
+  {max:7.1, t:'Neutre',             bg:'#f0fdfa', txt:'#134e4a'},
+  {max:9,   t:'Légèrement basique', bg:'#eff6ff', txt:'#1e3a5f'},
+  {max:11,  t:'Basique',            bg:'#eef2ff', txt:'#312e81'},
+  {max:14,  t:'Fortement basique',  bg:'#faf5ff', txt:'#4c1d95'},
+];
+
+function getNature(ph) {
+  for (let n of NATURES) if (ph <= n.max) return n;
+  return NATURES[NATURES.length - 1];
+}
+
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach((el, i) =>
+    el.classList.toggle('active', ['sim','exo'][i] === t));
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  if (t === 'exo') initQuiz();
+}
+
+function onTypeChange() {
+  const t = document.getElementById('type').value;
+  document.getElementById('pka-row').classList.toggle('hidden', t==='af'||t==='bf'||t==='tb');
+  document.getElementById('tampon-row').classList.toggle('hidden', t !== 'tb');
+  document.getElementById('conc-wrap').classList.toggle('hidden', t === 'tb');
+  updatePresets(t);
+  calculate();
+}
+
+function updatePresets(t) {
+  const p = document.getElementById('presets');
+  p.innerHTML = '<span class="preset-label">Exemples :</span>';
+  (PRESETS[t] || []).forEach(pr => {
+    const b = document.createElement('button');
+    b.className = 'preset-btn';
+    b.textContent = pr.l;
+    b.onclick = () => {
+      if (pr.c   !== null) document.getElementById('conc').value = pr.c;
+      if (pr.pka !== null) document.getElementById('pka').value  = pr.pka;
+      if (pr.na  !== null) document.getElementById('na').value   = pr.na;
+      if (pr.nha !== null) document.getElementById('nha').value  = pr.nha;
+      calculate();
+    };
+    p.appendChild(b);
+  });
+}
+
+function fmt(x, d=4) {
+  if (x === null || isNaN(x)) return '?';
+  if (x >= 0.01) return parseFloat(x.toPrecision(d)).toString();
+  const e = Math.floor(Math.log10(x));
+  const m = parseFloat((x / Math.pow(10, e)).toPrecision(3));
+  return m + ' × 10^' + e;
+}
+
+function calculate() {
+  const t   = document.getElementById('type').value;
+  const C   = parseFloat(document.getElementById('conc').value) || 0.1;
+  const pka = parseFloat(document.getElementById('pka').value)  || 4.74;
+  const na  = parseFloat(document.getElementById('na').value)   || 0.05;
+  const nha = parseFloat(document.getElementById('nha').value)  || 0.05;
+  const ka  = Math.pow(10, -pka);
+
+  let ph, formula, steps = [];
+
+  if (t === 'af') {
+    ph = -Math.log10(C);
+    formula = 'pH = −log C';
+    steps = [
+      'Acide fort : dissociation totale → [H⁺] = C',
+      '[H⁺] = ' + fmt(C) + ' mol/L',
+      'pH = −log(' + fmt(C) + ') = ' + ph.toFixed(2)
+    ];
+  } else if (t === 'bf') {
+    ph = 14 + Math.log10(C);
+    formula = 'pH = 14 + log C';
+    steps = [
+      'Base forte : dissociation totale → [OH⁻] = C',
+      'pOH = −log(' + fmt(C) + ') = ' + (-Math.log10(C)).toFixed(2),
+      'pH = 14 − pOH = 14 − ' + (-Math.log10(C)).toFixed(2) + ' = ' + ph.toFixed(2)
+    ];
+  } else if (t === 'afb') {
+    const ratio = ka / C;
+    const valid = ratio < 0.05;
+    if (valid) {
+      ph = 0.5 * (pka - Math.log10(C));
+      formula = 'pH = ½ (pKa − log C)';
+      steps = [
+        'Vérif. approximation : Ka/C = ' + fmt(ratio) + ' < 0,05  ✓',
+        'log C = log(' + fmt(C) + ') = ' + Math.log10(C).toFixed(3),
+        'pH = ½ × (' + pka.toFixed(2) + ' − (' + Math.log10(C).toFixed(3) + '))',
+        'pH = ½ × ' + (pka - Math.log10(C)).toFixed(3) + ' = ' + ph.toFixed(2)
+      ];
+    } else {
+      const disc = ka * ka + 4 * ka * C;
+      const h = (-ka + Math.sqrt(disc)) / 2;
+      ph = -Math.log10(h);
+      formula = 'Équation du 2nd degré (approximation invalide)';
+      steps = [
+        'Vérif. : Ka/C = ' + fmt(ratio) + ' ≥ 0,05 → formule simplifiée inapplicable',
+        'x² + Ka·x − Ka·C = 0   (Ka = ' + fmt(ka) + ')',
+        'Discriminant Δ = Ka² + 4·Ka·C = ' + fmt(disc),
+        '[H⁺] = (−Ka + √Δ) / 2 = ' + fmt(h) + ' mol/L',
+        'pH = −log(' + fmt(h) + ') = ' + ph.toFixed(2)
+      ];
+    }
+  } else if (t === 'bfb') {
+    const kb = Math.pow(10, -(14 - pka));
+    const ratio = kb / C;
+    const valid = ratio < 0.05;
+    ph = 7 + 0.5 * (pka + Math.log10(C));
+    formula = 'pH = 7 + ½ (pKa + log C)';
+    steps = [
+      'pKa de l\'acide conjugué : ' + pka.toFixed(2) + '  → pKb = ' + (14-pka).toFixed(2),
+      'Vérif. : Kb/C = ' + fmt(ratio) + (valid ? ' < 0,05  ✓' : ' ≥ 0,05  ⚠ résultat approx.'),
+      'log C = ' + Math.log10(C).toFixed(3),
+      'pH = 7 + ½ × (' + pka.toFixed(2) + ' + (' + Math.log10(C).toFixed(3) + '))',
+      'pH = ' + ph.toFixed(2)
+    ];
+  } else {
+    ph = pka + Math.log10(na / nha);
+    const ratio = na / nha;
+    formula = 'pH = pKa + log([A⁻]/[HA])   Henderson-Hasselbalch';
+    steps = [
+      'n(A⁻) = ' + na + ' mol,   n(HA) = ' + nha + ' mol',
+      '[A⁻]/[HA] = ' + ratio.toFixed(4),
+      'log(' + ratio.toFixed(4) + ') = ' + Math.log10(ratio).toFixed(3),
+      'pH = ' + pka.toFixed(2) + ' + (' + Math.log10(ratio).toFixed(3) + ')',
+      'pH = ' + ph.toFixed(2)
+    ];
+  }
+
+  ph = Math.min(14, Math.max(0, ph));
+  const nat = getNature(ph);
+
+  document.getElementById('result-area').classList.remove('hidden');
+  document.getElementById('ph-val').textContent    = ph.toFixed(2);
+  document.getElementById('ph-nature').textContent = nat.t;
+
+  const bg = document.getElementById('ph-bg');
+  bg.style.background = nat.bg;
+  bg.style.color      = nat.txt;
+
+  document.getElementById('marker').style.left = (ph / 14 * 100).toFixed(1) + '%';
+  document.getElementById('formula-box').textContent = 'Formule : ' + formula;
+
+  const sc = document.getElementById('steps');
+  sc.innerHTML = '';
+  steps.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'step' + (i === steps.length - 1 ? ' final' : '');
+    d.textContent = s;
+    sc.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════════
+const QUESTIONS = [
+  { q: 'Quel est le pH d\'une solution de HCl 0,050 M ?',
+    opts: ['1,30', '2,30', '2,50', '1,70'], ans: 0,
+    exp: 'HCl est un acide fort : pH = −log(0,050) = −log(5×10⁻²) = 2 − log 5 ≈ 2 − 0,70 = 1,30' },
+
+  { q: 'Quel est le pH d\'une solution de NaOH 0,020 M ?',
+    opts: ['2,30', '11,70', '12,30', '12,70'], ans: 1,
+    exp: 'pH = 14 + log(0,020) = 14 + log(2×10⁻²) = 14 − 2 + log 2 = 12 + 0,30 = 12,30. Attention : log(0,020) = −1,70, donc pH = 14 − 1,70 = 12,30.' },
+
+  { q: 'Pour un acide faible, la formule simplifiée pH = ½(pKa − log C) est valide si :',
+    opts: ['Ka/C < 0,05', 'Ka/C > 0,05', 'Ka/C = 1', 'Toujours valide'], ans: 0,
+    exp: 'La condition Ka/C < 0,05 garantit que la quantité d\'acide dissociée est négligeable devant la concentration initiale.' },
+
+  { q: 'L\'acide acétique (pKa = 4,74) a une concentration de 0,10 M. Quel est son pH ?',
+    opts: ['4,74', '2,87', '3,87', '1,00'], ans: 1,
+    exp: 'pH = ½(pKa − log C) = ½(4,74 − log 0,10) = ½(4,74 + 1) = ½ × 5,74 = 2,87' },
+
+  { q: 'Un tampon : 0,10 mol CH₃COOH et 0,20 mol CH₃COO⁻ (pKa = 4,74). pH = ?',
+    opts: ['4,44', '5,04', '4,74', '3,74'], ans: 1,
+    exp: 'pH = pKa + log([A⁻]/[HA]) = 4,74 + log(0,20/0,10) = 4,74 + log 2 = 4,74 + 0,30 = 5,04' },
+
+  { q: 'Un acide fort à 10⁻⁸ M a un pH :',
+    opts: ['Égal à 8', 'Supérieur à 7', 'Inférieur à 7', 'Égal à 7'], ans: 2,
+    exp: 'L\'autoprotolyse de l\'eau (10⁻⁷ mol/L de H⁺) ne peut être négligée. Le pH réel ≈ 6,98 : légèrement inférieur à 7.' },
+
+  { q: 'HCN a pKa = 9,21. En solution à 0,20 M, son pH est :',
+    opts: ['9,21', '4,96', '7,00', '2,50'], ans: 1,
+    exp: 'pH = ½(9,21 − log 0,20) = ½(9,21 + 0,70) = ½ × 9,91 = 4,96' },
+
+  { q: 'Quelle formule pour une base faible (pKa acide conjugué = 9,25) à 0,10 M ?',
+    opts: ['pH = −log C', 'pH = ½(pKa − log C)', 'pH = 7 + ½(pKa + log C)', 'pH = 14 + log C'], ans: 2,
+    exp: 'Pour une base faible : pH = 7 + ½(pKa + log C) = 7 + ½(9,25 − 1) = 7 + 4,13 = 11,13' },
+
+  { q: 'Si on dilue un acide fort jusqu\'à C = 10⁻⁹ M, le pH sera :',
+    opts: ['9,00', 'Proche de 7', '7,00 exactement', 'Supérieur à 7'], ans: 1,
+    exp: 'On ne peut pas rendre une solution basique en diluant un acide. L\'autoprotolyse de l\'eau domine ; le pH tend vers 7 par valeurs inférieures.' },
+
+  { q: 'Le pH d\'un tampon acétate à [A⁻]/[HA] = 10 (pKa = 4,74) vaut :',
+    opts: ['4,74', '3,74', '5,74', '6,74'], ans: 2,
+    exp: 'pH = 4,74 + log(10) = 4,74 + 1 = 5,74' },
+];
+
+let qstate = { idx:0, score:0, results:[], done:false };
+
+function initQuiz() {
+  qstate = { idx:0, score:0, results:[], done:false };
+  renderQuiz();
+}
+
+function renderDots() {
+  return QUESTIONS.map((_, i) => {
+    let cls = '';
+    if (i < qstate.idx)       cls = qstate.results[i] ? 'ok' : 'ko';
+    else if (i === qstate.idx) cls = 'curr';
+    return `<div class="dot ${cls}"></div>`;
+  }).join('');
+}
+
+function renderQuiz() {
+  const area = document.getElementById('quiz-area');
+
+  if (qstate.done) {
+    const pct = Math.round(qstate.score / QUESTIONS.length * 100);
+    const msg = pct >= 80 ? 'Excellent travail !'
+              : pct >= 60 ? 'Bien ! Quelques points à revoir.'
+              :              'À retravailler — le simulateur peut aider !';
+    area.innerHTML = `
+      <div class="progress">${renderDots()}</div>
+      <div class="score-card">
+        <div class="score-num">${qstate.score}<span class="score-denom">/${QUESTIONS.length}</span></div>
+        <div class="score-msg">${msg}</div>
+        <button class="btn-reset" onclick="initQuiz()">Recommencer</button>
+      </div>`;
+    return;
+  }
+
+  const q = QUESTIONS[qstate.idx];
+  area.innerHTML = `
+    <div class="quiz-meta">
+      <span>Question ${qstate.idx + 1} / ${QUESTIONS.length}</span>
+      <span>Score : ${qstate.score}</span>
+    </div>
+    <div class="progress">${renderDots()}</div>
+    <div class="card">
+      <div class="question">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o, i) => `<button class="opt" onclick="answer(${i})">${o}</button>`).join('')}
+      </div>
+      <div id="fb" style="display:none"></div>
+    </div>`;
+}
+
+function answer(i) {
+  const q = QUESTIONS[qstate.idx];
+  const correct = i === q.ans;
+  if (correct) qstate.score++;
+  qstate.results.push(correct);
+
+  document.querySelectorAll('.opt').forEach((o, j) => {
+    o.disabled = true;
+    if (j === q.ans) o.classList.add('correct');
+    else if (j === i && !correct) o.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('fb');
+  fb.className = 'feedback ' + (correct ? 'ok' : 'ko');
+  fb.textContent = (correct ? '✓ Correct ! ' : '✗ Incorrect. ') + q.exp;
+  fb.style.display = 'block';
+
+  setTimeout(() => {
+    qstate.idx++;
+    if (qstate.idx >= QUESTIONS.length) qstate.done = true;
+    renderQuiz();
+  }, 3500);
+}
+
+onTypeChange();
+calculate();
+</script>
+</body>
+</html>
