@@ -499,17 +499,17 @@ function calculate() {
 
   if (t === 'af') {
     ph = -Math.log10(C);
-    formula = 'pH = −log C';
+    formula = 'pH = −log Ca';
     steps = [
-      'Acide fort : dissociation totale → [H⁺] = C',
+      'Acide fort : dissociation totale → [H⁺] = Ca',
       '[H⁺] = ' + fmt(C) + ' mol/L',
       'pH = −log(' + fmt(C) + ') = ' + ph.toFixed(2)
     ];
   } else if (t === 'bf') {
     ph = 14 + Math.log10(C);
-    formula = 'pH = 14 + log C';
+    formula = 'pH = 14 + log Cb';
     steps = [
-      'Base forte : dissociation totale → [OH⁻] = C',
+      'Base forte : dissociation totale → [OH⁻] = Cb',
       'pOH = −log(' + fmt(C) + ') = ' + (-Math.log10(C)).toFixed(2),
       'pH = 14 − pOH = 14 − ' + (-Math.log10(C)).toFixed(2) + ' = ' + ph.toFixed(2)
     ];
@@ -518,9 +518,9 @@ function calculate() {
     const valid = ratio < 0.05;
     if (valid) {
       ph = 0.5 * (pka - Math.log10(C));
-      formula = 'pH = ½ (pKa − log C)';
+      formula = 'pH = ½ (pKa − log Ca)';
       steps = [
-        'Vérif. approximation : Ka/C = ' + fmt(ratio) + ' < 0,05  ✓',
+        'Vérif. approximation : Ka/Ca = ' + fmt(ratio) + ' < 0,05  ✓',
         'log C = log(' + fmt(C) + ') = ' + Math.log10(C).toFixed(3),
         'pH = ½ × (' + pka.toFixed(2) + ' − (' + Math.log10(C).toFixed(3) + '))',
         'pH = ½ × ' + (pka - Math.log10(C)).toFixed(3) + ' = ' + ph.toFixed(2)
@@ -531,9 +531,9 @@ function calculate() {
       ph = -Math.log10(h);
       formula = 'Équation du 2nd degré (approximation invalide)';
       steps = [
-        'Vérif. : Ka/C = ' + fmt(ratio) + ' ≥ 0,05 → formule simplifiée inapplicable',
-        'x² + Ka·x − Ka·C = 0   (Ka = ' + fmt(ka) + ')',
-        'Discriminant Δ = Ka² + 4·Ka·C = ' + fmt(disc),
+        'Vérif. : Ka/Ca = ' + fmt(ratio) + ' ≥ 0,05 → formule simplifiée inapplicable',
+        'x² + Ka·x − Ka·Ca = 0   (Ka = ' + fmt(ka) + ')',
+        'Discriminant Δ = Ka² + 4·Ka·Ca = ' + fmt(disc),
         '[H⁺] = (−Ka + √Δ) / 2 = ' + fmt(h) + ' mol/L',
         'pH = −log(' + fmt(h) + ') = ' + ph.toFixed(2)
       ];
@@ -543,21 +543,21 @@ function calculate() {
     const ratio = kb / C;
     const valid = ratio < 0.05;
     ph = 7 + 0.5 * (pka + Math.log10(C));
-    formula = 'pH = 7 + ½ (pKa + log C)';
+    formula = 'pH = 7 + ½ (pKa + log Cb)';
     steps = [
       'pKa de l\'acide conjugué : ' + pka.toFixed(2) + '  → pKb = ' + (14-pka).toFixed(2),
-      'Vérif. : Kb/C = ' + fmt(ratio) + (valid ? ' < 0,05  ✓' : ' ≥ 0,05  ⚠ résultat approx.'),
-      'log C = ' + Math.log10(C).toFixed(3),
+      'Vérif. : Kb/Cb = ' + fmt(ratio) + (valid ? ' < 0,05  ✓' : ' ≥ 0,05  ⚠ résultat approx.'),
+      'log Cb = ' + Math.log10(C).toFixed(3),
       'pH = 7 + ½ × (' + pka.toFixed(2) + ' + (' + Math.log10(C).toFixed(3) + '))',
       'pH = ' + ph.toFixed(2)
     ];
   } else {
     ph = pka + Math.log10(na / nha);
     const ratio = na / nha;
-    formula = 'pH = pKa + log([A⁻]/[HA])   Henderson-Hasselbalch';
+    formula = 'pH = pKa + log(Cb/Ca)   Henderson-Hasselbalch';
     steps = [
-      'n(A⁻) = ' + na + ' mol,   n(HA) = ' + nha + ' mol',
-      '[A⁻]/[HA] = ' + ratio.toFixed(4),
+      'n(Cb) = ' + na + ' mol,   n(Ca) = ' + nha + ' mol',
+      'Cb/Ca = ' + ratio.toFixed(4),
       'log(' + ratio.toFixed(4) + ') = ' + Math.log10(ratio).toFixed(3),
       'pH = ' + pka.toFixed(2) + ' + (' + Math.log10(ratio).toFixed(3) + ')',
       'pH = ' + ph.toFixed(2)
