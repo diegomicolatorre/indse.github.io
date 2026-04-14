@@ -356,62 +356,61 @@ function toggleLayer(k) {
   update();
 }
 
+
+function solveH(f, hLow, hHigh) {
+  for (let i = 0; i < 60; i++) {
+    const hMid = (hLow + hHigh) / 2;
+    if (f(hMid) * f(hLow) < 0) hHigh = hMid; else hLow = hMid;
+  }
+  return (hLow + hHigh) / 2;
+}
+
 function computePH(mode, ca, cb, va, pka, vb) {
   const ka  = Math.pow(10, -pka);
+  const kw  = 1e-14;
   const veq = ca * va / cb;
+  const vt  = va + vb;
 
   if (mode === 'af_bf') {
-    if (vb < 1e-9) return -log10(ca);
-    if (Math.abs(vb - veq) < veq * 0.003) return 7.0;
-    if (vb < veq) return -log10((ca * va - cb * vb) / (va + vb));
-    return 14 + log10((cb * vb - ca * va) / (va + vb));
+    if (vb < 1e-9) return -log10(Math.max(ca, 1e-14));
+    if (vb < veq) {
+      const cH = (ca * va - cb * vb) / vt;
+      const h = solveH(h => h - kw/h - cH, 1e-14, 1);
+      return -log10(h);
+    }
+    if (Math.abs(vb - veq) < 1e-10) return 7.0;
+    const cOH = (cb * vb - ca * va) / vt;
+    const h = solveH(h => h - kw/h + cOH, 1e-14, 1);
+    return -log10(h);
   }
 
   if (mode === 'afb_bf') {
-    if (vb < 1e-9) {
-      const h = (-ka + Math.sqrt(ka * ka + 4 * ka * ca)) / 2;
-      return -log10(h);
-    }
-    if (Math.abs(vb - veq) < veq * 0.004) {
-      const cbase = ca * va / (va + veq);
-      const oh = Math.sqrt((1e-14 / ka) * cbase);
-      return 14 + log10(oh);
-    }
-    if (vb < veq) {
-      const nha = ca * va - cb * vb;
-      const na  = cb * vb;
-      if (nha < 1e-12) return 14 + log10(Math.sqrt((1e-14 / ka) * (ca * va / (va + vb))));
-      return pka + log10(na / nha);
-    }
-    return 14 + log10((cb * vb - ca * va) / (va + vb));
+    const cHAT = ca * va / vt;
+    const cBT  = cb * vb / vt;
+    const charge = h => h + cBT - kw/h - cHAT * (ka / (h + ka));
+    const h = solveH(charge, 1e-14, 1);
+    return -log10(h);
   }
 
   if (mode === 'bf_af') {
-    if (vb < 1e-9) return 14 + log10(ca);
-    if (Math.abs(vb - veq) < veq * 0.003) return 7.0;
-    if (vb < veq) return 14 + log10((ca * va - cb * vb) / (va + vb));
-    return -log10((cb * vb - ca * va) / (va + vb));
+    if (vb < 1e-9) return 14 + log10(Math.max(ca, 1e-14));
+    if (vb < veq) {
+      const cOH = (ca * va - cb * vb) / vt;
+      const h = solveH(h => h - kw/h + cOH, 1e-14, 1);
+      return -log10(h);
+    }
+    if (Math.abs(vb - veq) < 1e-10) return 7.0;
+    const cH = (cb * vb - ca * va) / vt;
+    const h = solveH(h => h - kw/h - cH, 1e-14, 1);
+    return -log10(h);
   }
 
   if (mode === 'bfb_af') {
-    const pkb = 14 - pka;
-    const kb  = Math.pow(10, -pkb);
-    if (vb < 1e-9) {
-      const oh = (-kb + Math.sqrt(kb * kb + 4 * kb * ca)) / 2;
-      return 14 + log10(oh);
-    }
-    if (Math.abs(vb - veq) < veq * 0.004) {
-      const cacid = ca * va / (va + veq);
-      const h = Math.sqrt(ka * cacid);
-      return -log10(h);
-    }
-    if (vb < veq) {
-      const nb  = ca * va - cb * vb;
-      const nbh = cb * vb;
-      if (nb < 1e-12) return -log10(Math.sqrt(ka * (ca * va / (va + vb))));
-      return pka + log10(nb / nbh);
-    }
-    return -log10((cb * vb - ca * va) / (va + vb));
+    const cBT  = ca * va / vt;
+    const cHAT = cb * vb / vt;
+    const charge = h => h + cBT * (h / (h + ka)) - cHAT - kw/h;
+    const h = solveH(charge, 1e-14, 1);
+    return -log10(h);
   }
   return null;
 }
