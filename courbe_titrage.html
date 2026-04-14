@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courbes de titrage — Acides &amp; Bases</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --text: #1a1916;
+  --text2: #6b6860;
+  --text3: #9e9c96;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --blue-mid: #378ADD;
+  --green: #3B6D11;
+  --green-light: #EAF3DE;
+  --red: #A32D2D;
+  --amber: #854F0B;
+  --amber-light: #FAEEDA;
+  --pink: #72243E;
+  --pink-light: #FBEAF0;
+  --teal: #0F6E56;
+  --teal-light: #E1F5EE;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.header {
+  background: var(--text);
+  color: #fff;
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.header-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+
+.header h1 { font-size: 17px; font-weight: 600; }
+.header p  { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+.main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+
+.layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; align-items: start; }
+
+@media (max-width: 680px) { .layout { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.panel-title {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 1rem;
+}
+
+.field { margin-bottom: 1rem; }
+.field:last-child { margin-bottom: 0; }
+
+label {
+  font-size: 12px; color: var(--text2);
+  display: block; margin-bottom: 5px;
+}
+
+select {
+  width: 100%; padding: 8px 10px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface); color: var(--text);
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  appearance: none; outline: none;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+select:focus { border-color: var(--blue-mid); }
+
+.slider-row { display: flex; align-items: center; gap: 8px; }
+
+input[type=range] {
+  -webkit-appearance: none; flex: 1; height: 4px;
+  background: var(--border2); border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--text);
+  border: 2px solid var(--surface); cursor: pointer;
+  box-shadow: 0 0 0 1px var(--border2);
+}
+input[type=range]:disabled { opacity: 0.35; cursor: default; }
+input[type=range]:disabled::-webkit-slider-thumb { cursor: default; }
+
+.val {
+  font-size: 13px; font-weight: 500; min-width: 46px; text-align: right;
+  font-family: 'DM Mono', monospace; color: var(--text);
+}
+
+.divider { height: 0.5px; background: var(--border); margin: 1rem 0; }
+
+.tog-group { display: flex; flex-direction: column; gap: 6px; }
+
+.tog {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  font-size: 12px; cursor: pointer;
+  background: transparent; color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  text-align: left; width: 100%;
+  transition: all .15s;
+}
+
+.tog:hover { background: var(--surface2); }
+
+.tog.on { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+.tog-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
+.chart-panel { display: flex; flex-direction: column; gap: 1rem; }
+
+.info-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+.info-card {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.info-lbl { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+
+.info-val {
+  font-size: 17px; font-weight: 500;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+}
+
+.info-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.chart-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.chart-wrap { position: relative; width: 100%; height: 360px; }
+
+.legend {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  font-size: 12px; color: var(--text2);
+  margin-top: 1rem; padding-top: 0.75rem;
+  border-top: 0.5px solid var(--border);
+}
+
+.leg { display: flex; align-items: center; gap: 5px; }
+
+.leg-line { width: 18px; height: 3px; border-radius: 2px; }
+.leg-dash { width: 18px; height: 2px; border-radius: 1px; border-top: 2px dashed; }
+.leg-box  { width: 14px; height: 8px; border-radius: 2px; opacity: .5; }
+
+.explain {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-left: 3px solid var(--blue-mid);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 14px;
+  font-size: 13px; line-height: 1.7;
+  color: var(--text2);
+}
+
+.explain strong { color: var(--text); font-weight: 500; }
+
+.explain .tag {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; margin-right: 4px;
+}
+
+.tag-eq  { background: #FCEBEB; color: #791F1F; }
+.tag-he  { background: #EAF3DE; color: #27500A; }
+.tag-tb  { background: #FAEEDA; color: #633806; }
+.tag-ind { background: var(--blue-light); color: #0C447C; }
+
+.footer {
+  text-align: center; font-size: 12px; color: var(--text3);
+  padding: 1.5rem; border-top: 0.5px solid var(--border);
+  margin-top: 1.5rem;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">⚗</div>
+  <div>
+    <h1>Courbes de titrage pH</h1>
+    <p>Volume équivalent · Demi-équivalence · Zone tampon | 6GT/TT — INDSé Bastogne</p>
+  </div>
+</div>
+
+<div class="main">
+  <div class="layout">
+
+    <!-- ── PANNEAU GAUCHE ── -->
+    <div class="panel">
+      <div class="panel-title">Paramètres</div>
+
+      <div class="field">
+        <label>Type de titrage</label>
+        <select id="mode" onchange="update()">
+          <option value="af_bf">Acide fort + base forte</option>
+          <option value="afb_bf" selected>Acide faible + base forte</option>
+          <option value="bf_af">Base forte + acide fort</option>
+          <option value="bfb_af">Base faible + acide fort</option>
+        </select>
+      </div>
+
+      <div class="field" id="pka-field">
+        <label id="pka-lbl">pKa de l'acide faible</label>
+        <div class="slider-row">
+          <input type="range" id="pka" min="2" max="12" step="0.1" value="4.74" oninput="update()">
+          <span class="val" id="pka-out">4,74</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Concentration Ca (mol/L)</label>
+        <div class="slider-row">
+          <input type="range" id="ca" min="0.01" max="1" step="0.01" value="0.1" oninput="update()">
+          <span class="val" id="ca-out">0,10</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Concentration Cb (mol/L)</label>
+        <div class="slider-row">
+          <input type="range" id="cb" min="0.01" max="1" step="0.01" value="0.1" oninput="update()">
+          <span class="val" id="cb-out">0,10</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Volume à titrer Va (mL)</label>
+        <div class="slider-row">
+          <input type="range" id="va" min="5" max="25" step="1" value="10" oninput="update()">
+          <span class="val" id="va-out">10</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="panel-title">Afficher / masquer</div>
+
+      <div class="tog-group">
+        <button class="tog on" id="tog-eq" onclick="toggleLayer('eq')">
+          <span class="tog-dot" style="background:#E24B4A"></span>Point d'équivalence
+        </button>
+        <button class="tog on" id="tog-he" onclick="toggleLayer('he')">
+          <span class="tog-dot" style="background:#639922"></span>Demi-équivalence
+        </button>
+        <button class="tog on" id="tog-tb" onclick="toggleLayer('tb')">
+          <span class="tog-dot" style="background:#EF9F27"></span>Zone tampon
+        </button>
+        <button class="tog on" id="tog-ind" onclick="toggleLayer('ind')">
+          <span class="tog-dot" style="background:#D4537E"></span>Indicateurs colorés
+        </button>
+      </div>
+    </div>
+
+    <!-- ── PANNEAU DROIT ── -->
+    <div class="chart-panel">
+
+      <div class="info-row">
+        <div class="info-card">
+          <div class="info-lbl">Volume équivalent</div>
+          <div class="info-val" id="veq">—</div>
+          <div class="info-sub">Ca·Va = Cb·Vb</div>
+        </div>
+        <div class="info-card">
+          <div class="info-lbl">pH à l'équivalence</div>
+          <div class="info-val" id="pheq">—</div>
+          <div class="info-sub" id="pheq-sub">—</div>
+        </div>
+        <div class="info-card">
+          <div class="info-lbl">pH demi-équivalence</div>
+          <div class="info-val" id="phhe">—</div>
+          <div class="info-sub" id="phhe-sub">—</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-wrap">
+          <canvas id="chart" role="img"
+            aria-label="Courbe de titrage pH en fonction du volume de titrant ajouté">
+            Courbe de titrage pH.
+          </canvas>
+        </div>
+        <div class="legend">
+          <span class="leg"><span class="leg-line" style="background:#378ADD"></span>Courbe pH</span>
+          <span class="leg"><span class="leg-dash" style="border-color:#E24B4A"></span>Équivalence</span>
+          <span class="leg"><span class="leg-dash" style="border-color:#639922"></span>Demi-équivalence</span>
+          <span class="leg"><span class="leg-box" style="background:#EF9F27"></span>Zone tampon</span>
+          <span class="leg"><span class="leg-box" style="background:#D4537E"></span>Phénolphtaléine (8,2–10,0)</span>
+          <span class="leg"><span class="leg-box" style="background:#1D9E75"></span>Méthylorange (3,1–4,4)</span>
+        </div>
+      </div>
+
+      <div class="explain" id="explain">—</div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Outil pédagogique — Réactions acide-base · Titrage | Formules exactes calculées à 25 °C
+</div>
+
+<script>
+const log10 = x => Math.log(x) / Math.LN10;
+let myChart = null;
+let layers = { eq:true, he:true, tb:true, ind:true };
+
+function toggleLayer(k) {
+  layers[k] = !layers[k];
+  document.getElementById('tog-' + k).classList.toggle('on', layers[k]);
+  update();
+}
+
+function computePH(mode, ca, cb, va, pka, vb) {
+  const ka  = Math.pow(10, -pka);
+  const veq = ca * va / cb;
+
+  if (mode === 'af_bf') {
+    if (vb < 1e-9) return -log10(ca);
+    if (Math.abs(vb - veq) < veq * 0.003) return 7.0;
+    if (vb < veq) return -log10((ca * va - cb * vb) / (va + vb));
+    return 14 + log10((cb * vb - ca * va) / (va + vb));
+  }
+
+  if (mode === 'afb_bf') {
+    if (vb < 1e-9) {
+      const h = (-ka + Math.sqrt(ka * ka + 4 * ka * ca)) / 2;
+      return -log10(h);
+    }
+    if (Math.abs(vb - veq) < veq * 0.004) {
+      const cbase = ca * va / (va + veq);
+      const oh = Math.sqrt((1e-14 / ka) * cbase);
+      return 14 + log10(oh);
+    }
+    if (vb < veq) {
+      const nha = ca * va - cb * vb;
+      const na  = cb * vb;
+      if (nha < 1e-12) return 14 + log10(Math.sqrt((1e-14 / ka) * (ca * va / (va + vb))));
+      return pka + log10(na / nha);
+    }
+    return 14 + log10((cb * vb - ca * va) / (va + vb));
+  }
+
+  if (mode === 'bf_af') {
+    if (vb < 1e-9) return 14 + log10(ca);
+    if (Math.abs(vb - veq) < veq * 0.003) return 7.0;
+    if (vb < veq) return 14 + log10((ca * va - cb * vb) / (va + vb));
+    return -log10((cb * vb - ca * va) / (va + vb));
+  }
+
+  if (mode === 'bfb_af') {
+    const pkb = 14 - pka;
+    const kb  = Math.pow(10, -pkb);
+    if (vb < 1e-9) {
+      const oh = (-kb + Math.sqrt(kb * kb + 4 * kb * ca)) / 2;
+      return 14 + log10(oh);
+    }
+    if (Math.abs(vb - veq) < veq * 0.004) {
+      const cacid = ca * va / (va + veq);
+      const h = Math.sqrt(ka * cacid);
+      return -log10(h);
+    }
+    if (vb < veq) {
+      const nb  = ca * va - cb * vb;
+      const nbh = cb * vb;
+      if (nb < 1e-12) return -log10(Math.sqrt(ka * (ca * va / (va + vb))));
+      return pka + log10(nb / nbh);
+    }
+    return -log10((cb * vb - ca * va) / (va + vb));
+  }
+  return null;
+}
+
+function buildCurve(mode, ca, cb, va, pka) {
+  const veq  = ca * va / cb;
+  const vMax = veq * 2.2;
+  const pts  = [];
+  const N    = 180;
+  for (let i = 0; i <= N; i++) {
+    const vb = (i / N) * vMax;
+    const ph = computePH(mode, ca, cb, va, pka, vb);
+    if (ph !== null) pts.push({ x: vb, y: Math.min(14, Math.max(0, ph)) });
+  }
+  return pts;
+}
+
+function update() {
+  const mode = document.getElementById('mode').value;
+  const pka  = parseFloat(document.getElementById('pka').value);
+  const ca   = parseFloat(document.getElementById('ca').value);
+  const cb   = parseFloat(document.getElementById('cb').value);
+  const va   = parseFloat(document.getElementById('va').value);
+
+  const isWeak = mode === 'afb_bf' || mode === 'bfb_af';
+  document.getElementById('pka').disabled = !isWeak;
+  document.getElementById('pka-lbl').textContent = mode === 'bfb_af'
+    ? 'pKa de l\'acide conjugué'
+    : 'pKa de l\'acide faible';
+
+  document.getElementById('pka-out').textContent = pka.toFixed(2).replace('.', ',');
+  document.getElementById('ca-out').textContent  = ca.toFixed(2).replace('.', ',');
+  document.getElementById('cb-out').textContent  = cb.toFixed(2).replace('.', ',');
+  document.getElementById('va-out').textContent  = va.toFixed(0);
+
+  const veq   = ca * va / cb;
+  const vhe   = veq / 2;
+  const phEq  = computePH(mode, ca, cb, va, pka, veq);
+  const phHe  = isWeak ? computePH(mode, ca, cb, va, pka, vhe) : null;
+  const phInit = computePH(mode, ca, cb, va, pka, 0);
+
+  document.getElementById('veq').textContent  = veq.toFixed(1) + ' mL';
+  document.getElementById('pheq').textContent = phEq !== null ? phEq.toFixed(2) : '—';
+  document.getElementById('phhe').textContent = phHe !== null ? phHe.toFixed(2) : 'N/A';
+
+  const subEq = phEq > 7.3 ? 'basique → sel basique'
+              : phEq < 6.7 ? 'acide → sel acide'
+              : 'neutre = 7,00';
+  document.getElementById('pheq-sub').textContent = subEq;
+  document.getElementById('phhe-sub').textContent = isWeak
+    ? 'pH = pKa = ' + pka.toFixed(2)
+    : '—';
+
+  const pts  = buildCurve(mode, ca, cb, va, pka);
+  const vMax = pts[pts.length - 1].x;
+
+  const annotations = {};
+
+  if (layers.eq) {
+    annotations.eqV = {
+      type:'line', scaleID:'x', value:veq,
+      borderColor:'#E24B4A', borderWidth:2, borderDash:[6,4],
+      label:{ display:true, content:'Véq = ' + veq.toFixed(1) + ' mL',
+        backgroundColor:'#E24B4A', color:'#fff',
+        font:{ size:11, family:'DM Mono, monospace' },
+        position:'start', yAdjust:-8 }
+    };
+    annotations.eqH = {
+      type:'line', scaleID:'y', value:phEq,
+      borderColor:'#E24B4A', borderWidth:1.5, borderDash:[3,3]
+    };
+    annotations.eqPt = {
+      type:'point', xValue:veq, yValue:phEq,
+      backgroundColor:'#E24B4A', radius:7,
+      borderColor:'#fff', borderWidth:2
+    };
+  }
+
+  if (layers.he && isWeak) {
+    annotations.heV = {
+      type:'line', scaleID:'x', value:vhe,
+      borderColor:'#639922', borderWidth:2, borderDash:[5,4],
+      label:{ display:true, content:'V½ = ' + vhe.toFixed(1) + ' mL',
+        backgroundColor:'#639922', color:'#fff',
+        font:{ size:11, family:'DM Mono, monospace' },
+        position:'start', yAdjust:12 }
+    };
+    annotations.heH = {
+      type:'line', scaleID:'y', value:pka,
+      borderColor:'#639922', borderWidth:1.5, borderDash:[3,3],
+      label:{ display:true, content:'pH = pKa = ' + pka.toFixed(2),
+        backgroundColor:'#639922', color:'#fff',
+        font:{ size:11, family:'DM Mono, monospace' },
+        position:'end' }
+    };
+    annotations.hePt = {
+      type:'point', xValue:vhe, yValue:phHe,
+      backgroundColor:'#639922', radius:7,
+      borderColor:'#fff', borderWidth:2
+    };
+  }
+
+  if (layers.tb && isWeak) {
+    const w = veq * 0.38;
+    annotations.tbZone = {
+      type:'box',
+      xMin:Math.max(0, vhe - w), xMax:Math.min(vMax, vhe + w),
+      yMin:0, yMax:14,
+      backgroundColor:'rgba(239,159,39,0.13)',
+      borderColor:'rgba(239,159,39,0.35)', borderWidth:1,
+      label:{ display:true, content:'Zone tampon',
+        color:'#854F0B', font:{ size:11 },
+        position:{ x:'center', y:'start' } }
+    };
+  }
+
+  if (layers.ind) {
+    annotations.pph = {
+      type:'box', xMin:0, xMax:vMax, yMin:8.2, yMax:10.0,
+      backgroundColor:'rgba(212,83,126,0.12)',
+      borderColor:'rgba(212,83,126,0.28)', borderWidth:1,
+      label:{ display:true, content:'Phénolphtaléine',
+        color:'#72243E', font:{ size:10 },
+        position:{ x:'end', y:'center' } }
+    };
+    annotations.meo = {
+      type:'box', xMin:0, xMax:vMax, yMin:3.1, yMax:4.4,
+      backgroundColor:'rgba(29,158,117,0.12)',
+      borderColor:'rgba(29,158,117,0.28)', borderWidth:1,
+      label:{ display:true, content:'Méthylorange',
+        color:'#085041', font:{ size:10 },
+        position:{ x:'end', y:'center' } }
+    };
+  }
+
+  const cfg = {
+    type:'line',
+    data:{
+      datasets:[{
+        data: pts.map(p => ({ x: parseFloat(p.x.toFixed(3)), y: parseFloat(p.y.toFixed(3)) })),
+        borderColor:'#378ADD',
+        borderWidth:2.5,
+        pointRadius:0,
+        tension:0.3,
+        fill:false
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:{ duration:300 },
+      plugins:{
+        legend:{ display:false },
+        annotation:{ annotations }
+      },
+      scales:{
+        x:{
+          type:'linear',
+          title:{
+            display:true,
+            text: mode.includes('bf') && mode.startsWith('b')
+              ? 'Volume HCl ajouté (mL)'
+              : 'Volume NaOH ajouté (mL)',
+            color:'#888780', font:{ size:12, family:'DM Sans, sans-serif' }
+          },
+          min:0, max: parseFloat(vMax.toFixed(1)),
+          ticks:{ color:'#888780', font:{size:11}, maxTicksLimit:12,
+            callback: v => parseFloat(v).toFixed(1) },
+          grid:{ color:'rgba(0,0,0,0.07)' }
+        },
+        y:{
+          title:{ display:true, text:'pH',
+            color:'#888780', font:{ size:12, family:'DM Sans, sans-serif' } },
+          min:0, max:14,
+          ticks:{ color:'#888780', font:{size:11}, stepSize:2 },
+          grid:{ color:'rgba(0,0,0,0.07)' }
+        }
+      }
+    }
+  };
+
+  if (myChart) myChart.destroy();
+  myChart = new Chart(document.getElementById('chart').getContext('2d'), cfg);
+
+  renderExplain(mode, veq, phEq, phHe, isWeak, pka, phInit, ca, cb);
+}
+
+function renderExplain(mode, veq, phEq, phHe, isWeak, pka, phInit, ca, cb) {
+  const names = {
+    af_bf:  'Acide fort titré par base forte',
+    afb_bf: 'Acide faible titré par base forte',
+    bf_af:  'Base forte titrée par acide fort',
+    bfb_af: 'Base faible titrée par acide fort'
+  };
+
+  let html = '<strong>' + names[mode] + '</strong><br>';
+
+  if (mode === 'af_bf') {
+    html += '<span class="tag tag-eq">Équivalence</span> pH = <strong>7,00</strong> '
+          + '(sel neutre NaCl). Saut de pH très abrupt.<br>'
+          + '<span class="tag tag-ind">Indicateurs</span> Méthylorange <em>et</em> phénolphtaléine conviennent tous deux '
+          + '(saut de pH couvre pH 4–10).<br>'
+          + 'pH initial = ' + phInit.toFixed(2) + ' → pH = −log(' + ca.toFixed(2) + ').';
+  }
+  else if (mode === 'afb_bf') {
+    html += '<span class="tag tag-he">Demi-équivalence</span> V½ = ' + (veq/2).toFixed(1) + ' mL → '
+          + '<strong>pH = pKa = ' + pka.toFixed(2) + '</strong>. '
+          + 'Méthode de détermination expérimentale du pKa.<br>'
+          + '<span class="tag tag-tb">Zone tampon</span> Autour de V½ : la solution résiste aux variations de pH '
+          + '(domaine [A⁻]/[HA] entre 0,1 et 10, soit pH ∈ [pKa−1 ; pKa+1]).<br>'
+          + '<span class="tag tag-eq">Équivalence</span> pH = <strong>' + phEq.toFixed(2) + '</strong> > 7 '
+          + '(sel basique : base conjuguée). '
+          + '<span class="tag tag-ind">Indicateur</span> Phénolphtaléine recommandée.';
+  }
+  else if (mode === 'bf_af') {
+    html += '<span class="tag tag-eq">Équivalence</span> pH = <strong>7,00</strong> (sel neutre). '
+          + 'Saut abrupt symétrique au titrage acide fort / base forte.<br>'
+          + '<span class="tag tag-ind">Indicateurs</span> Méthylorange <em>et</em> phénolphtaléine conviennent.<br>'
+          + 'pH initial = ' + phInit.toFixed(2) + ' → pH = 14 + log(' + ca.toFixed(2) + ').';
+  }
+  else {
+    html += '<span class="tag tag-he">Demi-équivalence</span> V½ = ' + (veq/2).toFixed(1) + ' mL → '
+          + '<strong>pH = pKa = ' + pka.toFixed(2) + '</strong>.<br>'
+          + '<span class="tag tag-tb">Zone tampon</span> Autour de V½ (même principe que l\'acide faible).<br>'
+          + '<span class="tag tag-eq">Équivalence</span> pH = <strong>' + phEq.toFixed(2) + '</strong> < 7 '
+          + '(sel acide : acide conjugué). '
+          + '<span class="tag tag-ind">Indicateur</span> Méthylorange approprié si pH éq. ≈ 3–5.';
+  }
+
+  document.getElementById('explain').innerHTML = html;
+}
+
+window.addEventListener('load', update);
+</script>
+</body>
+</html>
